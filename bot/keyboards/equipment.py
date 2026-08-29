@@ -7,7 +7,6 @@ from bot.callbacks.equipment import EquipmentAction, EquipmentCallback
 from bot.models.equipment import (
     EquipmentGroup,
     EquipmentLoadout,
-    EquipmentViewMode,
     EquippedSlot,
 )
 
@@ -40,15 +39,10 @@ def _group_count(loadout: EquipmentLoadout, group: EquipmentGroup) -> tuple[int,
 
 def equipment_keyboard(
     loadout: EquipmentLoadout,
-    mode: EquipmentViewMode,
 ) -> InlineKeyboardMarkup:
     armor = _group_count(loadout, EquipmentGroup.ARMOR)
     weapons = _group_count(loadout, EquipmentGroup.WEAPONS)
     jewelry = _group_count(loadout, EquipmentGroup.JEWELRY)
-    next_mode = (
-        EquipmentViewMode.BONUSES if mode is EquipmentViewMode.ITEMS else EquipmentViewMode.ITEMS
-    )
-    mode_text = "📊 Показать бонусы" if mode is EquipmentViewMode.ITEMS else "🏷 Показать предметы"
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -69,7 +63,6 @@ def equipment_keyboard(
                     EquipmentAction.GROUP,
                     EquipmentGroup.JEWELRY.value,
                 ),
-                _equipment_button(mode_text, EquipmentAction.MODE, next_mode.value),
             ],
             [
                 _character_button("📊 Характеристики", CharacterSection.STATS),

@@ -9,7 +9,7 @@ from bot.keyboards.equipment import (
     equipment_keyboard,
     equipped_slot_keyboard,
 )
-from bot.models.equipment import EquipmentGroup, EquipmentViewMode
+from bot.models.equipment import EquipmentGroup
 from bot.services.equipment import (
     get_equipment_loadout,
     get_equipped_slot,
@@ -29,21 +29,19 @@ router = Router(name=__name__)
 async def open_equipment_screen(
     message: Message,
     user_id: int,
-    *,
-    mode: EquipmentViewMode = EquipmentViewMode.ITEMS,
 ) -> None:
     loadout = get_equipment_loadout(user_id)
     image = BufferedInputFile(
-        render_equipment_board(loadout, mode),
-        filename=f"equipment-{mode.value}.jpg",
+        render_equipment_board(loadout),
+        filename="equipment-stats.jpg",
     )
     await safe_edit_media(
         message,
         media=InputMediaPhoto(
             media=image,
-            caption=render_equipment_caption(loadout, mode),
+            caption=render_equipment_caption(loadout),
         ),
-        reply_markup=equipment_keyboard(loadout, mode),
+        reply_markup=equipment_keyboard(loadout),
     )
 
 
@@ -61,11 +59,8 @@ async def handle_equipment_callback(
         case EquipmentAction.HOME:
             await open_equipment_screen(callback.message, user_id)
         case EquipmentAction.MODE:
-            await open_equipment_screen(
-                callback.message,
-                user_id,
-                mode=EquipmentViewMode(callback_data.value),
-            )
+            # Compatibility with buttons on messages sent by the previous UI.
+            await open_equipment_screen(callback.message, user_id)
         case EquipmentAction.GROUP:
             group = EquipmentGroup(callback_data.value)
             slots = get_group_slots(user_id, group)

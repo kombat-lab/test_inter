@@ -5,26 +5,23 @@ from html import escape
 from bot.models.equipment import (
     EquipmentGroup,
     EquipmentLoadout,
-    EquipmentViewMode,
     EquippedSlot,
 )
 
 
 def render_equipment_caption(
     loadout: EquipmentLoadout,
-    mode: EquipmentViewMode,
 ) -> str:
-    mode_title = "названия предметов" if mode is EquipmentViewMode.ITEMS else "бонусы предметов"
     bonuses = loadout.total_bonuses
     return "\n".join(
         [
             f"🛡 <b>Экипировка · {loadout.occupied_count}/{len(loadout.slots)}</b>",
-            f"<i>На изображении: {mode_title}</i>",
+            "<i>Характеристики, заточка и установленные Карты показаны на изображении.</i>",
+            "🃏 В каждую вещь можно вставить одну Карту.",
             "",
             "<b>Итоговые показатели</b>",
-            f"{bonuses[0]}  ·  {bonuses[2]}  ·  {bonuses[3]}",
-            f"{bonuses[1]}  ·  {bonuses[4]}",
-            f"{bonuses[5]}  ·  {bonuses[6]}",
+            "  ·  ".join(bonuses[:5]),
+            "  ·  ".join(bonuses[5:]),
             "",
             "<i>Выберите группу снаряжения.</i>",
         ]
@@ -48,10 +45,18 @@ def render_equipped_slot_caption(slot: EquippedSlot) -> str:
         return f"{escape(slot.icon)} <b>{escape(slot.label)}</b>\n\n▫️ Слот свободен."
 
     bonuses = "\n".join(f"• {escape(bonus)}" for bonus in slot.bonuses)
+    enhancement = f"Заточка: <b>+{slot.enhancement_level}</b>" if slot.enhancement_level else ""
+    card = (
+        f"🃏 Карта: <b>{escape(slot.card.name)}</b>"
+        if slot.card is not None
+        else "🃏 Карта: не установлена"
+    )
     return "\n".join(
         [
             f"{escape(slot.icon)} <b>{escape(slot.label)}</b>",
             f"<b>{escape(slot.display_name)}</b>",
+            enhancement,
+            card,
             "",
             "<b>Бонусы предмета</b>",
             bonuses or "• Нет бонусов",

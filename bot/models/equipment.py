@@ -32,6 +32,12 @@ class EquipmentViewMode(StrEnum):
 
 
 @dataclass(frozen=True, slots=True)
+class EquippedCard:
+    name: str
+    rarity: str = "common"
+
+
+@dataclass(frozen=True, slots=True)
 class EquippedSlot:
     slot_id: str
     label: str
@@ -41,6 +47,8 @@ class EquippedSlot:
     rarity: str = "empty"
     bonuses: tuple[str, ...] = ()
     enhancement_level: int = 0
+    asset_name: str = ""
+    card: EquippedCard | None = None
 
     @property
     def occupied(self) -> bool:
