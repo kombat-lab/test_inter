@@ -11,7 +11,6 @@ from aiogram.types import CallbackQuery, FSInputFile, InputMediaPhoto, Message
 
 from bot.callbacks.inventory import InventoryAction, InventoryCallback
 from bot.keyboards.inventory import (
-    inventory_compare_keyboard,
     inventory_filters_keyboard,
     inventory_item_keyboard,
     inventory_keyboard,
@@ -36,7 +35,6 @@ from bot.services.message_edits import (
 )
 from bot.states.inventory import InventorySearch
 from bot.views.inventory import (
-    render_compare_caption,
     render_filter_caption,
     render_inventory_caption,
     render_item_caption,
@@ -244,13 +242,6 @@ async def _handle_item_action(callback: CallbackQuery, callback_data: InventoryC
             user_id,
             item,
             notice="Предмет надет." if equipped else "Предмет снят.",
-        )
-    elif callback_data.action is InventoryAction.COMPARE:
-        await callback.answer()
-        await safe_edit_caption(
-            callback.message,
-            caption=render_compare_caption(item, equipped=is_equipped(user_id, item)),
-            reply_markup=inventory_compare_keyboard(item.item_id),
         )
 
 

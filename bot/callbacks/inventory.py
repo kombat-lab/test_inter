@@ -18,7 +18,6 @@ class InventoryAction(StrEnum):
     USE_MENU = "use_menu"
     USE = "use"
     EQUIP = "equip"
-    COMPARE = "compare"
 
 
 class InventoryCallback(CallbackData, prefix="inventory"):

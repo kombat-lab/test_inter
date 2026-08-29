@@ -68,7 +68,7 @@ def render_item_caption(item: InventoryItem, *, equipped: bool = False, notice: 
         f"{escape(item.icon)} <b>{escape(item.name)}{enhancement}</b>",
         f"{item.category.icon} {item.category.title} · <b>{item.quantity} шт.</b>",
         "",
-        escape(item.description),
+        f"<blockquote>{escape(item.description)}</blockquote>",
         "",
     ]
     if item.equipment_slot:
@@ -86,24 +86,19 @@ def render_item_caption(item: InventoryItem, *, equipped: bool = False, notice: 
             lines.append(f"Классы: {escape(', '.join(item.allowed_classes))}")
         if item.personal:
             lines.append("🔒 <i>Личный предмет · нельзя передать</i>")
-    else:
+    elif item.category is not ItemCategory.RESOURCES:
         lines.append(f"Редкость: <b>{escape(item.rarity)}</b>")
     if item.effects:
         lines.extend(["", "<b>Свойства</b>"])
         lines.extend(f"• {escape(effect)}" for effect in item.effects)
+    if item.equipment_slot and item.comparison:
+        lines.extend(
+            [
+                "",
+                f"<b>Сравнение · {escape(item.compared_with or 'надетый предмет')}</b>",
+                *(escape(line) for line in item.comparison),
+            ]
+        )
     if notice:
         lines.extend(["", f"✅ <i>{escape(notice)}</i>"])
     return "\n".join(lines)
-
-
-def render_compare_caption(item: InventoryItem, *, equipped: bool) -> str:
-    state = "сейчас экипирован" if equipped else "находится в рюкзаке"
-    comparison = "\n".join(f"• {escape(line)}" for line in item.comparison)
-    return (
-        f"⚖️ <b>Сравнение: {escape(item.name)}</b>\n\n"
-        f"Предмет {state}.\n"
-        f"Слот: <b>{escape(item.equipment_slot or '—')}</b>\n\n"
-        f"<b>Сейчас надето:</b> {escape(item.compared_with or 'неизвестно')}\n\n"
-        f"<b>Изменение параметров</b>\n"
-        f"{comparison or '• Сравнение пока недоступно'}"
-    )

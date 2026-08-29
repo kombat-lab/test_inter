@@ -14,6 +14,7 @@ from aiogram.types import (
 )
 
 from bot.callbacks.character import CharacterCallback, CharacterSection
+from bot.handlers.equipment import open_equipment_screen
 from bot.handlers.inventory import open_inventory_screen
 from bot.keyboards.character import character_back_keyboard, character_keyboard
 from bot.keyboards.stats import stats_keyboard
@@ -35,10 +36,6 @@ _SECTION_CONTENT = {
     CharacterSection.SKILLS: (
         "⚔️ <b>Приёмы</b>",
         "Здесь появятся изученные приёмы и настройка боевого набора.",
-    ),
-    CharacterSection.EQUIPMENT: (
-        "🛡 <b>Экипировка</b>",
-        "Здесь появятся надетые предметы и доступные улучшения.",
     ),
 }
 
@@ -99,6 +96,9 @@ async def handle_character_section(
             await edit_character_screen(callback.message)
         case CharacterSection.INVENTORY:
             await open_inventory_screen(callback.message, callback.from_user.id, state)
+        case CharacterSection.EQUIPMENT:
+            await state.clear()
+            await open_equipment_screen(callback.message, callback.from_user.id)
         case CharacterSection.EFFECTS:
             await safe_edit_caption(
                 callback.message,

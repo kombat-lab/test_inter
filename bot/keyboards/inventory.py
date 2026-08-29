@@ -104,7 +104,6 @@ def inventory_item_keyboard(item: InventoryItem, *, equipped: bool = False) -> I
                     item.item_id,
                     style=None if equipped else "success",
                 ),
-                _callback_button("⚖️ Сравнить", InventoryAction.COMPARE, item.item_id),
             ]
         )
     rows.append([_callback_button("↩️ К предметам", InventoryAction.BACK_LIST)])
@@ -129,13 +128,4 @@ def inventory_quantity_keyboard(item: InventoryItem) -> InlineKeyboardMarkup:
 def inventory_search_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[[_callback_button("Отменить поиск", InventoryAction.CANCEL_SEARCH)]]
-    )
-
-
-def inventory_compare_keyboard(item_id: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [_callback_button("↩️ К предмету", InventoryAction.ITEM, item_id)],
-            [_callback_button("↩️ К предметам", InventoryAction.BACK_LIST)],
-        ]
     )
