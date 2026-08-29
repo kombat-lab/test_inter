@@ -49,7 +49,7 @@ python main.py
 
 ```powershell
 ruff check .
-pytest
+python -m pytest
 ```
 
 ## Переменные окружения
