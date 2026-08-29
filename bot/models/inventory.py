@@ -48,6 +48,12 @@ class InventoryItem:
     comparison: tuple[str, ...] = ()
     usable: bool = False
     equipment_slot: str | None = None
+    enhancement_level: int = 0
+    required_level: int | None = None
+    allowed_classes: tuple[str, ...] = ()
+    personal: bool = False
+    damage_range: str = ""
+    compared_with: str = ""
 
 
 @dataclass(frozen=True, slots=True)

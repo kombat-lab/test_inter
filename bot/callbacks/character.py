@@ -11,6 +11,7 @@ class CharacterSection(StrEnum):
     QUESTS = "quests"
     INVENTORY = "inventory"
     STATS = "stats"
+    STATS_DETAILS = "stats_details"
     SKILLS = "skills"
     EQUIPMENT = "equipment"
 

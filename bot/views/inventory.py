@@ -63,21 +63,31 @@ def render_search_prompt() -> str:
 
 
 def render_item_caption(item: InventoryItem, *, equipped: bool = False, notice: str = "") -> str:
+    enhancement = f" · +{item.enhancement_level}" if item.enhancement_level else ""
     lines = [
-        f"{escape(item.icon)} <b>{escape(item.name)}</b>",
+        f"{escape(item.icon)} <b>{escape(item.name)}{enhancement}</b>",
         f"{item.category.icon} {item.category.title} · <b>{item.quantity} шт.</b>",
         "",
         escape(item.description),
         "",
-        f"Редкость: <b>{escape(item.rarity)}</b>",
     ]
     if item.equipment_slot:
         lines.extend(
             [
+                f"Редкость: <b>{escape(item.icon)} {escape(item.rarity)}</b>",
                 f"Слот: <b>{escape(item.equipment_slot)}</b>",
+                f"Требуемый уровень: <b>{item.required_level or 1}</b>",
                 f"Состояние: <b>{'экипировано' if equipped else 'в рюкзаке'}</b>",
             ]
         )
+        if item.damage_range:
+            lines.append(f"Диапазон: <b>{escape(item.damage_range)}</b>")
+        if item.allowed_classes:
+            lines.append(f"Классы: {escape(', '.join(item.allowed_classes))}")
+        if item.personal:
+            lines.append("🔒 <i>Личный предмет · нельзя передать</i>")
+    else:
+        lines.append(f"Редкость: <b>{escape(item.rarity)}</b>")
     if item.effects:
         lines.extend(["", "<b>Свойства</b>"])
         lines.extend(f"• {escape(effect)}" for effect in item.effects)
@@ -93,6 +103,7 @@ def render_compare_caption(item: InventoryItem, *, equipped: bool) -> str:
         f"⚖️ <b>Сравнение: {escape(item.name)}</b>\n\n"
         f"Предмет {state}.\n"
         f"Слот: <b>{escape(item.equipment_slot or '—')}</b>\n\n"
-        f"<b>Относительно надетого предмета</b>\n"
+        f"<b>Сейчас надето:</b> {escape(item.compared_with or 'неизвестно')}\n\n"
+        f"<b>Изменение параметров</b>\n"
         f"{comparison or '• Сравнение пока недоступно'}"
     )

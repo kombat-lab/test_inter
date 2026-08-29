@@ -19,7 +19,11 @@ from bot.services.inventory import (
     toggle_equipped,
     use_item,
 )
-from bot.views.inventory import render_inventory_caption, render_item_caption
+from bot.views.inventory import (
+    render_compare_caption,
+    render_inventory_caption,
+    render_item_caption,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -98,6 +102,27 @@ def test_item_card_uses_contextual_actions() -> None:
     ]
     assert "Выносливость +4" in equipment_caption
     assert "Слот: <b>Основная рука</b>" in equipment_caption
+    assert "Жезл тумана · +6" in equipment_caption
+    assert "Требуемый уровень: <b>1</b>" in equipment_caption
+    assert "Аколит, Ученик Аколита" in equipment_caption
+    assert "Личный предмет · нельзя передать" in equipment_caption
+    comparison = render_compare_caption(equipment, equipped=False)
+    assert "Сейчас надето:</b> Витой тотем" in comparison
+    assert "Магическая атака: +2" in comparison
+
+
+def test_leather_pants_card_uses_production_details() -> None:
+    item = get_item(1, "leather_pants")
+    assert item is not None
+
+    caption = render_item_caption(item)
+    comparison = render_compare_caption(item, equipped=False)
+
+    assert "Требуемый уровень: <b>10</b>" in caption
+    assert "Аколит, Бастион, Охотник, Маг, Тень" in caption
+    assert "Магическая защита +20" in caption
+    assert "Сейчас надето:</b> Плотные штаны" in comparison
+    assert "Защита: −8" in comparison
 
 
 def test_crafting_resource_cannot_be_used() -> None:

@@ -16,10 +16,13 @@ from aiogram.types import (
 from bot.callbacks.character import CharacterCallback, CharacterSection
 from bot.handlers.inventory import open_inventory_screen
 from bot.keyboards.character import character_back_keyboard, character_keyboard
+from bot.keyboards.stats import stats_keyboard
 from bot.models.character import Character
 from bot.services.characters import get_character
 from bot.services.message_edits import safe_edit_caption, safe_edit_media
+from bot.services.stats import get_character_stats
 from bot.views.character import render_character_caption, render_character_section
+from bot.views.stats import render_stats_caption
 
 router = Router(name=__name__)
 
@@ -28,10 +31,6 @@ _SECTION_CONTENT = {
     CharacterSection.QUESTS: (
         "📜 <b>Квесты</b>",
         "Здесь появятся активные задания, награды и прогресс прохождения.",
-    ),
-    CharacterSection.STATS: (
-        "📊 <b>Характеристики</b>",
-        "Здесь появятся боевые параметры и подробные бонусы персонажа.",
     ),
     CharacterSection.SKILLS: (
         "⚔️ <b>Приёмы</b>",
@@ -105,6 +104,20 @@ async def handle_character_section(
                 callback.message,
                 caption=render_character_caption(character, expanded_buffs=True),
                 reply_markup=_overview_keyboard(character, effects_expanded=True),
+            )
+        case CharacterSection.STATS:
+            await state.clear()
+            await safe_edit_caption(
+                callback.message,
+                caption=render_stats_caption(get_character_stats()),
+                reply_markup=stats_keyboard(),
+            )
+        case CharacterSection.STATS_DETAILS:
+            await state.clear()
+            await safe_edit_caption(
+                callback.message,
+                caption=render_stats_caption(get_character_stats(), expanded=True),
+                reply_markup=stats_keyboard(expanded=True),
             )
         case _:
             await state.clear()
