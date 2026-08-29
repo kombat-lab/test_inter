@@ -21,7 +21,7 @@ from bot.views.equipment import (
     render_equipped_slot_caption,
 )
 from bot.views.equipment_image import _font as equipment_font
-from bot.views.equipment_image import render_equipment_board
+from bot.views.equipment_image import enhancement_track, render_equipment_board
 
 
 def test_equipment_board_is_generated_from_loadout() -> None:
@@ -30,7 +30,7 @@ def test_equipment_board_is_generated_from_loadout() -> None:
     bonuses_image = render_equipment_board(loadout, EquipmentViewMode.BONUSES)
 
     with Image.open(BytesIO(items_image)) as image:
-        assert image.size == (1600, 1000)
+        assert image.size == (1600, 1900)
         assert image.format == "JPEG"
     assert len(items_image) < 10 * 1024 * 1024
     assert items_image != bonuses_image
@@ -41,10 +41,18 @@ def test_equipment_board_is_generated_from_loadout() -> None:
 def test_equipment_board_uses_bundled_cyrillic_fonts() -> None:
     regular = equipment_font(24)
     bold = equipment_font(24, bold=True)
+    display = equipment_font(24, display=True)
 
     assert str(getattr(regular, "path", "")).endswith("DejaVuSans.ttf")
     assert str(getattr(bold, "path", "")).endswith("DejaVuSans-Bold.ttf")
+    assert str(getattr(display, "path", "")).endswith("DejaVuSerif-Bold.ttf")
     assert regular.getbbox("Экипировка") is not None
+
+
+def test_weapon_enhancement_track_has_ten_steps() -> None:
+    assert enhancement_track(6) == (True,) * 6 + (False,) * 4
+    assert enhancement_track(99) == (True,) * 10
+    assert enhancement_track(-1) == (False,) * 10
 
 
 def test_equipment_main_screen_is_compact() -> None:
