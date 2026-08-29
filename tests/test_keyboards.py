@@ -22,7 +22,7 @@ def test_character_menu_uses_compact_styled_layout() -> None:
     assert [[button.text for button in row] for row in keyboard.inline_keyboard] == [
         ["🎒 Инвентарь", "🛡 Экипировка"],
         ["📊 Характеристики", "⚔️ Приёмы"],
-        ["🌫 Все эффекты · 3"],
+        ["⚡ Все эффекты · 3"],
         ["📜 Перейти к квестам"],
     ]
     assert [
@@ -42,5 +42,5 @@ def test_character_menu_uses_compact_styled_layout() -> None:
 def test_expanded_effects_keyboard_can_return_to_overview() -> None:
     keyboard = character_keyboard(effects_expanded=True)
 
-    assert keyboard.inline_keyboard[2][0].text == "🌫 Свернуть эффекты"
+    assert keyboard.inline_keyboard[2][0].text == "⚡ Свернуть эффекты"
     assert keyboard.inline_keyboard[2][0].callback_data == "character:overview"

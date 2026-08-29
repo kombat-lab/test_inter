@@ -13,7 +13,7 @@ from bot.views.character import render_character_caption, render_character_secti
 
 router = Router(name=__name__)
 
-_CHARACTER_IMAGE = Path(__file__).resolve().parents[1] / "assets" / "character.png"
+_CHARACTER_IMAGE = Path(__file__).resolve().parents[1] / "assets" / "character-hero.png"
 _SECTION_CONTENT = {
     CharacterSection.QUESTS: (
         "📜 <b>Квесты</b>",

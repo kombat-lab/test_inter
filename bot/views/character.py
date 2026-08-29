@@ -5,6 +5,7 @@ from html import escape
 from bot.models.character import ActiveBuff, Character
 
 _PROGRESS_SEGMENTS = 10
+_WORD_JOINER = "\u2060"
 
 
 def _format_number(value: int) -> str:
@@ -13,12 +14,19 @@ def _format_number(value: int) -> str:
 
 def _render_progress(character: Character) -> tuple[str, int]:
     if character.experience_to_next_level <= 0:
-        return "░" * _PROGRESS_SEGMENTS, 0
+        return _WORD_JOINER.join(["⬛️"] * _PROGRESS_SEGMENTS), 0
 
     ratio = min(character.experience / character.experience_to_next_level, 1.0)
     percentage = round(ratio * 100)
     filled = round(ratio * _PROGRESS_SEGMENTS)
-    bar = "█" * filled + "░" * (_PROGRESS_SEGMENTS - filled)
+    if percentage < 35:
+        filled_segment = "🟧"
+    elif percentage < 70:
+        filled_segment = "🟨"
+    else:
+        filled_segment = "🟩"
+    segments = [filled_segment] * filled + ["⬛️"] * (_PROGRESS_SEGMENTS - filled)
+    bar = _WORD_JOINER.join(segments)
     return bar, percentage
 
 
@@ -47,14 +55,14 @@ def render_character_caption(
         f"<i>{escape(character.combat_class)} · Путь {escape(character.path)}</i>",
         "",
         f"<b>Уровень {character.level}</b>  ·  {percentage}%",
-        f"<code>{progress}</code>",
+        progress,
         f"{_format_number(character.experience)} / "
         f"{_format_number(character.experience_to_next_level)} XP",
         "",
         f"✨ <b>{_format_number(character.mist_dust)}</b> пыли   "
         f"💎 <b>{_format_number(character.mist_crystals)}</b> кристаллов",
         "",
-        f"🌫 <b>Активные эффекты · {len(character.active_buffs)}</b>",
+        f"⚡ <b>Активные эффекты · {len(character.active_buffs)}</b>",
     ]
     if expanded_buffs:
         for buff in character.active_buffs:

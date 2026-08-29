@@ -19,7 +19,7 @@ def _button(
 
 
 def character_keyboard(*, effects_expanded: bool = False) -> InlineKeyboardMarkup:
-    effects_text = "🌫 Свернуть эффекты" if effects_expanded else "🌫 Все эффекты · 3"
+    effects_text = "⚡ Свернуть эффекты" if effects_expanded else "⚡ Все эффекты · 3"
     effects_section = (
         CharacterSection.OVERVIEW if effects_expanded else CharacterSection.EFFECTS
     )
