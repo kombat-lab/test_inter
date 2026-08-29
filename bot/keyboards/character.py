@@ -18,23 +18,34 @@ def _button(
     )
 
 
-def character_keyboard(*, effects_expanded: bool = False) -> InlineKeyboardMarkup:
-    effects_text = "⚡ Свернуть эффекты" if effects_expanded else "⚡ Все эффекты · 3"
-    effects_section = (
-        CharacterSection.OVERVIEW if effects_expanded else CharacterSection.EFFECTS
+def character_keyboard(
+    *,
+    effects_count: int = 0,
+    effects_expanded: bool = False,
+    has_claimable_quest: bool = False,
+) -> InlineKeyboardMarkup:
+    effects_text = (
+        "⚡ Свернуть эффекты" if effects_expanded else f"⚡ Все эффекты · {effects_count}"
     )
+    effects_section = CharacterSection.OVERVIEW if effects_expanded else CharacterSection.EFFECTS
     return InlineKeyboardMarkup(
         inline_keyboard=[
+            [_button(effects_text, effects_section)],
             [
                 _button("🎒 Инвентарь", CharacterSection.INVENTORY),
-                _button("🛡 Экипировка", CharacterSection.EQUIPMENT, style="success"),
+                _button("🛡 Экипировка", CharacterSection.EQUIPMENT),
             ],
             [
-                _button("📊 Характеристики", CharacterSection.STATS),
+                _button("📊 Параметры", CharacterSection.STATS),
                 _button("⚔️ Приёмы", CharacterSection.SKILLS),
             ],
-            [_button(effects_text, effects_section)],
-            [_button("📜 Перейти к квестам", CharacterSection.QUESTS, style="primary")],
+            [
+                _button(
+                    "📜 Квесты",
+                    CharacterSection.QUESTS,
+                    style="success" if has_claimable_quest else None,
+                )
+            ],
         ]
     )
 

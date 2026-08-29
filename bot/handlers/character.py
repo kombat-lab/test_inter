@@ -4,10 +4,17 @@ from pathlib import Path
 
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.types import CallbackQuery, FSInputFile, InputMediaPhoto, Message
+from aiogram.types import (
+    CallbackQuery,
+    FSInputFile,
+    InlineKeyboardMarkup,
+    InputMediaPhoto,
+    Message,
+)
 
 from bot.callbacks.character import CharacterCallback, CharacterSection
 from bot.keyboards.character import character_back_keyboard, character_keyboard
+from bot.models.character import Character
 from bot.services.characters import get_character
 from bot.views.character import render_character_caption, render_character_section
 
@@ -38,12 +45,24 @@ _SECTION_CONTENT = {
 }
 
 
+def _overview_keyboard(
+    character: Character,
+    *,
+    effects_expanded: bool = False,
+) -> InlineKeyboardMarkup:
+    return character_keyboard(
+        effects_count=len(character.active_buffs),
+        effects_expanded=effects_expanded,
+        has_claimable_quest=character.claimable_quests > 0,
+    )
+
+
 async def send_character_screen(message: Message) -> None:
     character = get_character()
     await message.answer_photo(
         photo=FSInputFile(_CHARACTER_IMAGE),
         caption=render_character_caption(character),
-        reply_markup=character_keyboard(),
+        reply_markup=_overview_keyboard(character),
     )
 
 
@@ -54,7 +73,7 @@ async def edit_character_screen(message: Message) -> None:
             media=FSInputFile(_CHARACTER_IMAGE),
             caption=render_character_caption(character),
         ),
-        reply_markup=character_keyboard(),
+        reply_markup=_overview_keyboard(character),
     )
 
 
@@ -77,12 +96,12 @@ async def handle_character_section(
         case CharacterSection.OVERVIEW:
             await callback.message.edit_caption(
                 caption=render_character_caption(character),
-                reply_markup=character_keyboard(),
+                reply_markup=_overview_keyboard(character),
             )
         case CharacterSection.EFFECTS:
             await callback.message.edit_caption(
                 caption=render_character_caption(character, expanded_buffs=True),
-                reply_markup=character_keyboard(effects_expanded=True),
+                reply_markup=_overview_keyboard(character, effects_expanded=True),
             )
         case _:
             title, description = _SECTION_CONTENT[callback_data.section]

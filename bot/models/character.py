@@ -5,10 +5,10 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class ActiveBuff:
+    icon: str
     name: str
-    remaining: str
+    remaining_seconds: int
     effects: tuple[str, ...]
-    inline: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -22,3 +22,4 @@ class Character:
     combat_class: str
     path: str
     active_buffs: tuple[ActiveBuff, ...] = ()
+    claimable_quests: int = 0
