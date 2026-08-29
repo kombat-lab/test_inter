@@ -26,6 +26,7 @@ async def handle_help(message: Message) -> None:
     await message.answer(
         "<b>Доступные команды</b>\n\n"
         "/start — открыть главное меню\n"
+        "/character — открыть персонажа\n"
         "/help — показать эту справку",
         reply_markup=main_menu_keyboard(),
     )

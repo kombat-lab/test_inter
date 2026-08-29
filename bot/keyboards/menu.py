@@ -13,8 +13,8 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
         callback_data=MenuCallback(action=MenuAction.PLAY),
     )
     builder.button(
-        text="👤 Профиль",
-        callback_data=MenuCallback(action=MenuAction.PROFILE),
+        text="🧙 Персонаж",
+        callback_data=MenuCallback(action=MenuAction.CHARACTER),
     )
     builder.button(
         text="❓ Помощь",

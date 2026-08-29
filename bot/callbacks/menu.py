@@ -8,7 +8,7 @@ from aiogram.filters.callback_data import CallbackData
 class MenuAction(StrEnum):
     HOME = "home"
     PLAY = "play"
-    PROFILE = "profile"
+    CHARACTER = "character"
     HELP = "help"
 
 
