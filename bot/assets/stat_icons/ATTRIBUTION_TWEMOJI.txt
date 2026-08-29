@@ -1,0 +1,9 @@
+Twemoji graphics
+
+Copyright 2020 Twitter, Inc and other contributors.
+Source: https://github.com/jdecked/twemoji
+Graphics license: CC BY 4.0
+https://creativecommons.org/licenses/by/4.0/
+
+The original 72x72 PNG graphics are redistributed without modification.
+They are resized at runtime for the equipment interface.

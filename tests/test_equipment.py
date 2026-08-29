@@ -21,8 +21,11 @@ from bot.views.equipment import (
     render_equipment_group_caption,
     render_equipped_slot_caption,
 )
+from bot.views.equipment_image import (
+    _bottom_stats,
+    render_equipment_board,
+)
 from bot.views.equipment_image import _font as equipment_font
-from bot.views.equipment_image import render_equipment_board
 
 
 def test_equipment_board_is_generated_from_loadout() -> None:
@@ -46,6 +49,20 @@ def test_equipment_board_uses_bundled_cyrillic_fonts() -> None:
     assert str(getattr(bold, "path", "")).endswith("Oswald-Variable.ttf")
     assert str(getattr(display, "path", "")).endswith("Oswald-Variable.ttf")
     assert regular.getbbox("Экипировка") is not None
+
+
+def test_equipment_footer_contains_only_requested_stats() -> None:
+    stats = _bottom_stats(get_equipment_loadout(1))
+
+    assert tuple(label for label, _, _ in stats) == (
+        "HP",
+        "УРОН",
+        "ИНТЕЛЛЕКТ",
+        "ВЫНОСЛИВОСТЬ",
+        "ФИЗ. ЗАЩИТА",
+        "МАГ. ЗАЩИТА",
+    )
+    assert tuple(value for _, value, _ in stats) == ("750", "1", "16", "25", "61", "58")
 
 
 def test_each_item_has_one_optional_card_slot() -> None:

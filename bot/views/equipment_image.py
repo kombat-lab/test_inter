@@ -13,7 +13,8 @@ from bot.models.equipment import EquipmentLoadout, EquippedSlot
 _CANVAS_SIZE = (1600, 1600)
 _ASSET_DIRECTORY = Path(__file__).resolve().parents[1] / "assets"
 _EQUIPMENT_ASSET_DIRECTORY = _ASSET_DIRECTORY / "equipment"
-_UI_BASE = _ASSET_DIRECTORY / "ui" / "equipment-fog-frame-v2.png"
+_STAT_ICON_DIRECTORY = _ASSET_DIRECTORY / "stat_icons"
+_UI_BASE = _ASSET_DIRECTORY / "ui" / "equipment-fog-clean-v3.png"
 _CHARACTER_IMAGE = _ASSET_DIRECTORY / "character.png"
 _FONT_DIRECTORY = _ASSET_DIRECTORY / "fonts"
 _TEXT_FONT = _FONT_DIRECTORY / "Oswald-Variable.ttf"
@@ -53,30 +54,22 @@ _BONUS_PREFIXES = (
     ("Скор", "speed"),
     ("Блок", "block"),
 )
-_TOTAL_LABELS = {
-    "HP": ("HP", "hp"),
-    "Скорость": ("СКОРОСТЬ", "speed"),
-    "Бонус HP от экипа": ("ЭКИП. HP", "hp"),
-    "Бонус скорости от экипа": ("ЭКИП. СКОРОСТЬ", "speed"),
-    "Защита": ("ЗАЩИТА", "defense"),
-    "Маг. защита": ("МАГ. ЗАЩИТА", "magic_defense"),
-    "Крит": ("КРИТ", "critical"),
-    "Атака": ("АТАКА", "attack"),
-    "Маг. атака": ("МАГ. АТАКА", "magic_attack"),
-    "Блок": ("БЛОК", "block"),
+_STAT_ICON_FILES = {
+    "hp": "hp.png",
+    "attack": "damage.png",
+    "intelligence": "intelligence.png",
+    "regeneration": "endurance.png",
+    "endurance": "endurance.png",
+    "defense": "defense.png",
+    "magic_defense": "magic_defense.png",
+    "luck": "luck.png",
+    "critical_power": "critical_power.png",
+    "critical": "critical.png",
+    "drop": "drop.png",
+    "speed": "speed.png",
+    "block": "block.png",
+    "magic_attack": "magic_attack.png",
 }
-_TOTAL_ORDER = (
-    "HP",
-    "Скорость",
-    "Защита",
-    "Маг. защита",
-    "Крит",
-    "Атака",
-    "Маг. атака",
-    "Блок",
-    "Бонус HP от экипа",
-    "Бонус скорости от экипа",
-)
 
 
 @lru_cache(maxsize=48)
@@ -99,6 +92,12 @@ def _font(
 def _source_image(path: str) -> Image.Image:
     with Image.open(path) as source:
         return source.convert("RGB")
+
+
+@lru_cache(maxsize=32)
+def _source_rgba(path: str) -> Image.Image:
+    with Image.open(path) as source:
+        return source.convert("RGBA")
 
 
 def _chamfered_points(
@@ -307,6 +306,26 @@ def _draw_stat_icon(
         draw.ellipse((x - 5, y - 7, x + 2, y), fill=(232, 231, 255, 220))
 
 
+def _paste_stat_icon(
+    canvas: Image.Image,
+    key: str,
+    center: tuple[int, int],
+    size: int,
+) -> None:
+    filename = _STAT_ICON_FILES.get(key, _STAT_ICON_FILES["intelligence"])
+    source = _source_rgba(str(_STAT_ICON_DIRECTORY / filename))
+    icon = source.resize((size, size), Image.Resampling.LANCZOS)
+    x = center[0] - size // 2
+    y = center[1] - size // 2
+
+    shadow = Image.new("RGBA", icon.size, (0, 0, 0, 0))
+    shadow.putalpha(icon.getchannel("A").filter(ImageFilter.GaussianBlur(3)))
+    dark = Image.new("RGBA", icon.size, (0, 0, 0, 155))
+    dark.putalpha(shadow.getchannel("A"))
+    canvas.alpha_composite(dark, (x + 2, y + 3))
+    canvas.alpha_composite(icon, (x, y))
+
+
 def _draw_lock(draw: ImageDraw.ImageDraw, origin: tuple[int, int]) -> None:
     x, y = origin
     draw.arc((x - 8, y - 10, x + 8, y + 8), 180, 360, fill=(255, 217, 118), width=4)
@@ -409,6 +428,7 @@ def _bonus_parts(bonus: str) -> tuple[str, str]:
 
 
 def _draw_bonus_grid(
+    canvas: Image.Image,
     draw: ImageDraw.ImageDraw,
     slot: EquippedSlot,
     box: tuple[int, int, int, int],
@@ -433,7 +453,7 @@ def _draw_bonus_grid(
         x = x1 + 12 + column * column_width
         y = top + row * row_height + row_height // 2
         icon, value = _bonus_parts(bonus)
-        _draw_stat_icon(draw, icon, (x + 13, y), 11)
+        _paste_stat_icon(canvas, icon, (x + 14, y), 28)
         draw.text(
             (x + 34, y - 1),
             value,
@@ -476,7 +496,7 @@ def _draw_equipment_slot(
         )
     else:
         _draw_empty_item(draw, slot, art_box)
-    _draw_bonus_grid(draw, slot, stat_box)
+    _draw_bonus_grid(canvas, draw, slot, stat_box)
 
 
 def _clean_total(raw: str) -> tuple[str, str]:
@@ -501,48 +521,84 @@ def _fit_font(
     return _font(17, bold=bold)
 
 
-def _draw_totals(draw: ImageDraw.ImageDraw, loadout: EquipmentLoadout) -> None:
+def _sum_item_bonus(loadout: EquipmentLoadout, prefix: str) -> int:
+    total = 0
+    pattern = re.compile(rf"^{re.escape(prefix)}\s+([+-]?\d+)")
+    for slot in loadout.slots:
+        for bonus in slot.bonuses:
+            match = pattern.match(bonus)
+            if match:
+                total += int(match.group(1))
+    return total
+
+
+def _bottom_stats(loadout: EquipmentLoadout) -> tuple[tuple[str, str, str], ...]:
     values = {}
     for raw in loadout.total_bonuses:
         raw_label, value = _clean_total(raw)
         values[raw_label] = value
+    return (
+        ("HP", values.get("HP", "0"), "hp"),
+        ("УРОН", values.get("Атака", "0"), "attack"),
+        ("ИНТЕЛЛЕКТ", str(_sum_item_bonus(loadout, "Инт")), "intelligence"),
+        ("ВЫНОСЛИВОСТЬ", str(_sum_item_bonus(loadout, "Вын")), "endurance"),
+        ("ФИЗ. ЗАЩИТА", values.get("Защита", "0"), "defense"),
+        ("МАГ. ЗАЩИТА", values.get("Маг. защита", "0"), "magic_defense"),
+    )
 
-    entries = []
-    for raw_label in _TOTAL_ORDER:
-        if raw_label not in values:
-            continue
-        label, icon = _TOTAL_LABELS.get(raw_label, (raw_label.upper(), "intelligence"))
-        entries.append((label, values[raw_label], icon))
 
-    rail_boxes = ((45, 1407, 1555, 1491), (45, 1504, 1555, 1588))
-    for rail_index, rail_box in enumerate(rail_boxes):
-        x1, y1, x2, y2 = rail_box
-        draw.polygon(_chamfered_points(_inset(rail_box, 4), 11), fill=(3, 8, 12, 205))
-        cell_width = (x2 - x1) // 5
-        for index in range(5):
-            entry_index = rail_index * 5 + index
-            if entry_index >= len(entries):
-                break
-            label, value, icon = entries[entry_index]
-            left = x1 + index * cell_width
-            if index:
-                draw.line(
-                    (left, y1 + 17, left, y2 - 17),
-                    fill=(130, 139, 136, 105),
-                    width=2,
-                )
-            _draw_stat_icon(draw, icon, (left + 31, (y1 + y2) // 2), 13)
-            value_text = f"{label} {value}"
-            font = _fit_font(value_text, cell_width - 66, 29)
-            draw.text(
-                (left + 58, (y1 + y2) // 2 - 1),
-                value_text,
-                font=font,
-                anchor="lm",
-                fill=(218, 219, 211),
-                stroke_width=1,
-                stroke_fill=(4, 7, 9),
+def _draw_totals(
+    canvas: Image.Image,
+    draw: ImageDraw.ImageDraw,
+    loadout: EquipmentLoadout,
+) -> None:
+    panel = (42, 1430, 1558, 1582)
+    glow = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    glow_draw = ImageDraw.Draw(glow, "RGBA")
+    glow_draw.line(
+        (*_chamfered_points(panel, 17), _chamfered_points(panel, 17)[0]),
+        fill=(115, 142, 148, 85),
+        width=8,
+    )
+    canvas.alpha_composite(glow.filter(ImageFilter.GaussianBlur(15)))
+    _draw_chamfered_panel(
+        draw,
+        panel,
+        border=(149, 156, 151),
+        fill=(2, 7, 11, 242),
+        cut=17,
+        width=3,
+    )
+
+    entries = _bottom_stats(loadout)
+    cell_width = (panel[2] - panel[0]) // len(entries)
+    for index, (label, value, icon) in enumerate(entries):
+        left = panel[0] + index * cell_width
+        center_y = (panel[1] + panel[3]) // 2
+        if index:
+            draw.line(
+                (left, panel[1] + 24, left, panel[3] - 24),
+                fill=(138, 149, 147, 90),
+                width=2,
             )
+        _paste_stat_icon(canvas, icon, (left + 45, center_y), 52)
+        label_font = _fit_font(label, cell_width - 88, 22)
+        draw.text(
+            (left + 82, panel[1] + 38),
+            label,
+            font=label_font,
+            fill=(150, 161, 160),
+            stroke_width=1,
+            stroke_fill=(3, 7, 9),
+        )
+        draw.text(
+            (left + 82, panel[1] + 73),
+            value,
+            font=_font(42, bold=True),
+            fill=(232, 233, 225),
+            stroke_width=1,
+            stroke_fill=(3, 7, 9),
+        )
 
 
 def _draw_header(draw: ImageDraw.ImageDraw) -> None:
@@ -593,7 +649,7 @@ def render_equipment_board(loadout: EquipmentLoadout) -> bytes:
             (1367, y1 + 3, 1552, y1 + 163),
         )
 
-    _draw_totals(draw, loadout)
+    _draw_totals(canvas, draw, loadout)
     output = BytesIO()
     canvas.convert("RGB").save(
         output,
