@@ -42,9 +42,9 @@ def test_equipment_board_uses_bundled_cyrillic_fonts() -> None:
     bold = equipment_font(24, bold=True)
     display = equipment_font(24, display=True)
 
-    assert str(getattr(regular, "path", "")).endswith("DejaVuSans.ttf")
-    assert str(getattr(bold, "path", "")).endswith("DejaVuSans-Bold.ttf")
-    assert str(getattr(display, "path", "")).endswith("DejaVuSerif-Bold.ttf")
+    assert str(getattr(regular, "path", "")).endswith("Oswald-Variable.ttf")
+    assert str(getattr(bold, "path", "")).endswith("Oswald-Variable.ttf")
+    assert str(getattr(display, "path", "")).endswith("Oswald-Variable.ttf")
     assert regular.getbbox("Экипировка") is not None
 
 
