@@ -20,6 +20,7 @@ from bot.views.equipment import (
     render_equipment_group_caption,
     render_equipped_slot_caption,
 )
+from bot.views.equipment_image import _font as equipment_font
 from bot.views.equipment_image import render_equipment_board
 
 
@@ -35,6 +36,15 @@ def test_equipment_board_is_generated_from_loadout() -> None:
     assert items_image != bonuses_image
     assert loadout.occupied_count == 11
     assert len(loadout.slots) == 15
+
+
+def test_equipment_board_uses_bundled_cyrillic_fonts() -> None:
+    regular = equipment_font(24)
+    bold = equipment_font(24, bold=True)
+
+    assert str(getattr(regular, "path", "")).endswith("DejaVuSans.ttf")
+    assert str(getattr(bold, "path", "")).endswith("DejaVuSans-Bold.ttf")
+    assert regular.getbbox("Экипировка") is not None
 
 
 def test_equipment_main_screen_is_compact() -> None:

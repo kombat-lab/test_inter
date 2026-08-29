@@ -10,6 +10,9 @@ from bot.models.equipment import EquipmentLoadout, EquipmentViewMode, EquippedSl
 
 _CANVAS_SIZE = (1600, 1000)
 _CHARACTER_IMAGE = Path(__file__).resolve().parents[1] / "assets" / "character.png"
+_FONT_DIRECTORY = Path(__file__).resolve().parents[1] / "assets" / "fonts"
+_REGULAR_FONT = _FONT_DIRECTORY / "DejaVuSans.ttf"
+_BOLD_FONT = _FONT_DIRECTORY / "DejaVuSans-Bold.ttf"
 _RARITY_COLORS = {
     "empty": (82, 96, 110, 210),
     "common": (212, 219, 226, 235),
@@ -21,19 +24,8 @@ _RARITY_COLORS = {
 
 @lru_cache(maxsize=16)
 def _font(size: int, *, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    names = (
-        "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-        if bold
-        else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "C:/Windows/Fonts/arialbd.ttf" if bold else "C:/Windows/Fonts/arial.ttf",
-    )
-    for name in names:
-        try:
-            return ImageFont.truetype(name, size)
-        except OSError:
-            continue
-    return ImageFont.load_default(size=size)
+    font_path = _BOLD_FONT if bold else _REGULAR_FONT
+    return ImageFont.truetype(font_path, size)
 
 
 def _truncate(
