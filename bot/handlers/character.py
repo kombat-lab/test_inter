@@ -18,6 +18,7 @@ from bot.handlers.inventory import open_inventory_screen
 from bot.keyboards.character import character_back_keyboard, character_keyboard
 from bot.models.character import Character
 from bot.services.characters import get_character
+from bot.services.message_edits import safe_edit_caption, safe_edit_media
 from bot.views.character import render_character_caption, render_character_section
 
 router = Router(name=__name__)
@@ -66,7 +67,8 @@ async def send_character_screen(message: Message) -> None:
 
 async def edit_character_screen(message: Message) -> None:
     character = get_character()
-    await message.edit_media(
+    await safe_edit_media(
+        message,
         media=InputMediaPhoto(
             media=FSInputFile(_CHARACTER_IMAGE),
             caption=render_character_caption(character),
@@ -99,14 +101,16 @@ async def handle_character_section(
         case CharacterSection.INVENTORY:
             await open_inventory_screen(callback.message, callback.from_user.id, state)
         case CharacterSection.EFFECTS:
-            await callback.message.edit_caption(
+            await safe_edit_caption(
+                callback.message,
                 caption=render_character_caption(character, expanded_buffs=True),
                 reply_markup=_overview_keyboard(character, effects_expanded=True),
             )
         case _:
             await state.clear()
             title, description = _SECTION_CONTENT[callback_data.section]
-            await callback.message.edit_caption(
+            await safe_edit_caption(
+                callback.message,
                 caption=render_character_section(title, description),
                 reply_markup=character_back_keyboard(),
             )

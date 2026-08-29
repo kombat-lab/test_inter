@@ -6,7 +6,6 @@ from aiogram.filters.callback_data import CallbackData
 
 
 class InventoryAction(StrEnum):
-    NOOP = "noop"
     PAGE = "page"
     ITEM = "item"
     FILTERS = "filters"

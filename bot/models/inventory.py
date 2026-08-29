@@ -45,6 +45,7 @@ class InventoryItem:
     description: str
     rarity: str
     effects: tuple[str, ...] = ()
+    comparison: tuple[str, ...] = ()
     usable: bool = False
     equipment_slot: str | None = None
 

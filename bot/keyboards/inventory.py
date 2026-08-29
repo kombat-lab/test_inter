@@ -25,12 +25,7 @@ def inventory_keyboard(
 ) -> InlineKeyboardMarkup:
     search_action = InventoryAction.CLEAR_SEARCH if query else InventoryAction.SEARCH
     search_text = "✕ Сбросить" if query else "🔎 Поиск"
-    rows = [
-        [
-            _callback_button(search_text, search_action),
-            _callback_button("🔄 Обновить", InventoryAction.REFRESH),
-        ]
-    ]
+    rows = [[_callback_button(search_text, search_action)]]
     rows.extend(
         [_callback_button(_item_text(item), InventoryAction.ITEM, item.item_id)]
         for item in inventory.items
@@ -43,7 +38,8 @@ def inventory_keyboard(
             )
         navigation.append(
             _callback_button(
-                f"{inventory.page + 1} / {inventory.total_pages}", InventoryAction.NOOP
+                f"🔄 {inventory.page + 1} / {inventory.total_pages}",
+                InventoryAction.REFRESH,
             )
         )
         if inventory.page < inventory.total_pages - 1:
@@ -83,6 +79,7 @@ def inventory_filters_keyboard(
             )
         ]
         for category in ItemCategory
+        if counts[category] > 0 or category is current
     ]
     rows.append([_callback_button("↩️ К предметам", InventoryAction.BACK_LIST)])
     return InlineKeyboardMarkup(inline_keyboard=rows)

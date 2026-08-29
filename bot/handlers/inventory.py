@@ -29,6 +29,11 @@ from bot.services.inventory import (
     toggle_equipped,
     use_item,
 )
+from bot.services.message_edits import (
+    safe_bot_edit_caption,
+    safe_edit_caption,
+    safe_edit_media,
+)
 from bot.states.inventory import InventorySearch
 from bot.views.inventory import (
     render_compare_caption,
@@ -84,7 +89,8 @@ async def _edit_inventory_list(
     await _store_view_state(
         state, category=category, page=inventory.page, query=query, message=message
     )
-    await message.edit_caption(
+    await safe_edit_caption(
+        message,
         caption=render_inventory_caption(inventory, get_character(), category, query=query),
         reply_markup=inventory_keyboard(inventory, category, query=query),
     )
@@ -97,7 +103,8 @@ async def open_inventory_screen(message: Message, user_id: int, state: FSMContex
     await _store_view_state(
         state, category=category, page=inventory.page, query="", message=message
     )
-    await message.edit_media(
+    await safe_edit_media(
+        message,
         media=InputMediaPhoto(
             media=FSInputFile(_INVENTORY_IMAGE),
             caption=render_inventory_caption(inventory, get_character(), category),
@@ -124,7 +131,8 @@ async def _show_item(
     message: Message, user_id: int, item: InventoryItem, *, notice: str = ""
 ) -> None:
     equipped = is_equipped(user_id, item)
-    await message.edit_caption(
+    await safe_edit_caption(
+        message,
         caption=render_item_caption(item, equipped=equipped, notice=notice),
         reply_markup=inventory_item_keyboard(item, equipped=equipped),
     )
@@ -150,22 +158,20 @@ async def handle_inventory_callback(
     value = callback_data.value
     category, page, query = await _get_view_state(state)
 
-    if action is InventoryAction.NOOP:
-        await callback.answer()
-    elif action is InventoryAction.PAGE:
+    if action is InventoryAction.PAGE:
         await callback.answer()
         await _edit_inventory_list(
             message, user_id, state, category=category, page=int(value), query=query
         )
     elif action is InventoryAction.REFRESH:
         await callback.answer("Инвентарь обновлён")
-        with suppress(TelegramBadRequest):
-            await _edit_inventory_list(
-                message, user_id, state, category=category, page=page, query=query
-            )
+        await _edit_inventory_list(
+            message, user_id, state, category=category, page=page, query=query
+        )
     elif action is InventoryAction.FILTERS:
         await callback.answer()
-        await message.edit_caption(
+        await safe_edit_caption(
+            message,
             caption=render_filter_caption(category),
             reply_markup=inventory_filters_keyboard(get_category_counts(user_id), category),
         )
@@ -183,19 +189,17 @@ async def handle_inventory_callback(
         await callback.answer()
         await _store_view_state(state, category=category, page=page, query=query, message=message)
         await state.set_state(InventorySearch.waiting_for_query)
-        await message.edit_caption(
-            caption=render_search_prompt(), reply_markup=inventory_search_keyboard()
+        await safe_edit_caption(
+            message, caption=render_search_prompt(), reply_markup=inventory_search_keyboard()
         )
     elif action is InventoryAction.CLEAR_SEARCH:
         await callback.answer("Поиск сброшен")
         await _edit_inventory_list(message, user_id, state, category=ItemCategory.ALL)
     else:
-        await _handle_item_action(callback, callback_data, state)
+        await _handle_item_action(callback, callback_data)
 
 
-async def _handle_item_action(
-    callback: CallbackQuery, callback_data: InventoryCallback, state: FSMContext
-) -> None:
+async def _handle_item_action(callback: CallbackQuery, callback_data: InventoryCallback) -> None:
     if not isinstance(callback.message, Message):
         await callback.answer()
         return
@@ -211,7 +215,8 @@ async def _handle_item_action(
         await _show_item(callback.message, user_id, item)
     elif callback_data.action is InventoryAction.USE_MENU:
         await callback.answer()
-        await callback.message.edit_caption(
+        await safe_edit_caption(
+            callback.message,
             caption=render_item_caption(item, equipped=is_equipped(user_id, item)),
             reply_markup=inventory_quantity_keyboard(item),
         )
@@ -242,7 +247,8 @@ async def _handle_item_action(
         )
     elif callback_data.action is InventoryAction.COMPARE:
         await callback.answer()
-        await callback.message.edit_caption(
+        await safe_edit_caption(
+            callback.message,
             caption=render_compare_caption(item, equipped=is_equipped(user_id, item)),
             reply_markup=inventory_compare_keyboard(item.item_id),
         )
@@ -276,7 +282,8 @@ async def handle_inventory_search(message: Message, state: FSMContext) -> None:
             _CHAT_ID_KEY: chat_id,
         }
     )
-    await message.bot.edit_message_caption(
+    await safe_bot_edit_caption(
+        message.bot,
         chat_id=chat_id,
         message_id=message_id,
         caption=render_inventory_caption(inventory, get_character(), category, query=query),

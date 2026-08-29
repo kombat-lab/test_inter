@@ -88,10 +88,11 @@ def render_item_caption(item: InventoryItem, *, equipped: bool = False, notice: 
 
 def render_compare_caption(item: InventoryItem, *, equipped: bool) -> str:
     state = "сейчас экипирован" if equipped else "находится в рюкзаке"
-    effects = "\n".join(f"• {escape(effect)}" for effect in item.effects)
+    comparison = "\n".join(f"• {escape(line)}" for line in item.comparison)
     return (
         f"⚖️ <b>Сравнение: {escape(item.name)}</b>\n\n"
         f"Предмет {state}.\n"
         f"Слот: <b>{escape(item.equipment_slot or '—')}</b>\n\n"
-        f"<b>Получаемые свойства</b>\n{effects or '• Нет боевых свойств'}"
+        f"<b>Относительно надетого предмета</b>\n"
+        f"{comparison or '• Сравнение пока недоступно'}"
     )
