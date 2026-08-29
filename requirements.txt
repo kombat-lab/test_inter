@@ -1,0 +1,2 @@
+# Production dependencies. Versions are pinned for reproducible Bothost builds.
+aiogram==3.31.0

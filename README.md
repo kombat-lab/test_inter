@@ -1,0 +1,92 @@
+# test_inter — Telegram game bot
+
+Стартовый каркас игрового Telegram-бота на Python 3.13 и aiogram 3.31.0.
+Бот работает через long polling, поэтому домен и открытый HTTP-порт ему не нужны.
+
+## Что уже есть
+
+- команды `/start` и `/help`;
+- главное inline-меню и типизированные callback-data;
+- отдельные роутеры, клавиатуры, конфигурация и логирование;
+- безопасное чтение токена из переменной окружения;
+- тесты, Ruff и проверка в GitHub Actions;
+- совместимая с Bothost точка входа `main.py` и фиксированные production-зависимости.
+
+## Структура
+
+```text
+.
+├── bot/
+│   ├── callbacks/       # модели callback-data
+│   ├── handlers/        # обработчики сообщений и нажатий
+│   ├── keyboards/       # фабрики клавиатур
+│   ├── application.py   # сборка и запуск приложения
+│   ├── config.py        # настройки из окружения
+│   └── logging.py       # настройка логов
+├── tests/
+├── main.py              # точка входа Bothost
+├── requirements.txt     # production-зависимости
+└── pyproject.toml       # метаданные и настройки инструментов
+```
+
+## Локальный запуск в PowerShell
+
+Нужен установленный Python 3.13.
+
+```powershell
+py -3.13 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements-dev.txt
+$env:BOT_TOKEN = "ТОКЕН_ОТ_BOTFATHER"
+python main.py
+```
+
+Токен задаётся только в текущем окне PowerShell. Не добавляйте настоящий токен в
+`.env`, исходный код, README или Git. Файл `.env` также исключён через `.gitignore`.
+
+Проверки перед отправкой:
+
+```powershell
+ruff check .
+pytest
+```
+
+## Переменные окружения
+
+| Имя | Обязательность | По умолчанию | Назначение |
+| --- | --- | --- | --- |
+| `BOT_TOKEN` | да | — | токен Telegram-бота; основное имя Bothost |
+| `TELEGRAM_BOT_TOKEN` | нет | — | запасное имя токена |
+| `LOG_LEVEL` | нет | `INFO` | уровень логов |
+| `DROP_PENDING_UPDATES` | нет | `false` | удалить старые апдейты при старте |
+
+Обычно `DROP_PENDING_UPDATES=false` лучше: сообщения не теряются при коротком
+перезапуске. Установите `true` один раз, если после долгого простоя накопилась
+неактуальная очередь.
+
+## Деплой на Bothost
+
+1. Отправьте файлы в ветку `main` репозитория
+   `https://github.com/kombat-lab/test_inter`.
+2. В Bothost выберите Python 3.13 и ветку `main`.
+3. Главный файл укажите как `main.py` либо оставьте автодетект.
+4. Убедитесь, что в окружении задан `BOT_TOKEN`.
+5. Запустите сборку и проверьте в логах строку `Starting @... in long-polling mode`.
+6. Откройте бота в Telegram и отправьте `/start`.
+
+Bothost автоматически установит `requirements.txt`. Dockerfile для этого проекта
+пока не нужен. Одновременно должен работать только один экземпляр long-polling
+бота с этим токеном, иначе Telegram вернёт ошибку конфликта `getUpdates`.
+
+## Как расширять игру
+
+- новый экран интерфейса: callback в `bot/callbacks/`, клавиатура в
+  `bot/keyboards/`, обработчик в `bot/handlers/`;
+- игровая логика: отдельный пакет `bot/services/`, без привязки к Telegram;
+- данные игрока: репозитории в `bot/repositories/` и постоянная БД;
+- длительные операции: фоновые задачи или очередь, чтобы обработчики быстро
+  отвечали Telegram.
+
+Когда появится состояние игрока, следующий разумный этап — спроектировать модели
+данных и выбрать SQLite/PostgreSQL с учётом постоянного хранилища Bothost.
