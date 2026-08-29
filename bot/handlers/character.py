@@ -4,6 +4,7 @@ from pathlib import Path
 
 from aiogram import Router
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import (
     CallbackQuery,
     FSInputFile,
@@ -13,6 +14,7 @@ from aiogram.types import (
 )
 
 from bot.callbacks.character import CharacterCallback, CharacterSection
+from bot.handlers.inventory import open_inventory_screen
 from bot.keyboards.character import character_back_keyboard, character_keyboard
 from bot.models.character import Character
 from bot.services.characters import get_character
@@ -25,10 +27,6 @@ _SECTION_CONTENT = {
     CharacterSection.QUESTS: (
         "📜 <b>Квесты</b>",
         "Здесь появятся активные задания, награды и прогресс прохождения.",
-    ),
-    CharacterSection.INVENTORY: (
-        "🎒 <b>Инвентарь</b>",
-        "Здесь появятся предметы, расходники и материалы персонажа.",
     ),
     CharacterSection.STATS: (
         "📊 <b>Характеристики</b>",
@@ -78,7 +76,8 @@ async def edit_character_screen(message: Message) -> None:
 
 
 @router.message(Command("character"))
-async def handle_character_command(message: Message) -> None:
+async def handle_character_command(message: Message, state: FSMContext) -> None:
+    await state.clear()
     await send_character_screen(message)
 
 
@@ -86,6 +85,7 @@ async def handle_character_command(message: Message) -> None:
 async def handle_character_section(
     callback: CallbackQuery,
     callback_data: CharacterCallback,
+    state: FSMContext,
 ) -> None:
     await callback.answer()
     if not isinstance(callback.message, Message):
@@ -94,16 +94,17 @@ async def handle_character_section(
     character = get_character()
     match callback_data.section:
         case CharacterSection.OVERVIEW:
-            await callback.message.edit_caption(
-                caption=render_character_caption(character),
-                reply_markup=_overview_keyboard(character),
-            )
+            await state.clear()
+            await edit_character_screen(callback.message)
+        case CharacterSection.INVENTORY:
+            await open_inventory_screen(callback.message, callback.from_user.id, state)
         case CharacterSection.EFFECTS:
             await callback.message.edit_caption(
                 caption=render_character_caption(character, expanded_buffs=True),
                 reply_markup=_overview_keyboard(character, effects_expanded=True),
             )
         case _:
+            await state.clear()
             title, description = _SECTION_CONTENT[callback_data.section]
             await callback.message.edit_caption(
                 caption=render_character_section(title, description),
