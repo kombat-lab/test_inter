@@ -6,6 +6,8 @@ from aiogram.filters.callback_data import CallbackData
 
 
 class CharacterSection(StrEnum):
+    OVERVIEW = "overview"
+    EFFECTS = "effects"
     QUESTS = "quests"
     INVENTORY = "inventory"
     STATS = "stats"

@@ -7,13 +7,22 @@ from bot.views.character import render_character_caption
 def test_character_caption_contains_reference_data() -> None:
     caption = render_character_caption(get_character())
 
-    assert "📍 <b>Персонаж</b>" in caption
+    assert "🧙 <b>Kombat</b>" in caption
     assert "<b>Kombat</b>" in caption
-    assert "• Уровень: 18" in caption
-    assert "• Опыт: 212435 / 238650" in caption
-    assert "✨ 70258 ед." in caption
-    assert "💎 213" in caption
+    assert "<b>Уровень 18</b>  ·  89%" in caption
+    assert "<code>█████████░</code>" in caption
+    assert "212 435 / 238 650 XP" in caption
+    assert "✨ <b>70 258</b> пыли" in caption
+    assert "💎 <b>213</b> кристаллов" in caption
+    assert "Ещё эффектов: 2" in caption
+    assert len(caption) <= 1024
+
+
+def test_expanded_character_caption_contains_all_buffs() -> None:
+    caption = render_character_caption(get_character(), expanded_buffs=True)
+
     assert caption.count("Серьга дропа (30 дней)") == 2
+    assert "Ещё эффектов" not in caption
     assert len(caption) <= 1024
 
 
