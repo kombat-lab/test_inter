@@ -9,19 +9,27 @@ from bot.models.equipment import (
 )
 
 
+def _format_total_bonus(raw: str) -> str:
+    first_text = next((index for index, char in enumerate(raw) if char.isalnum()), 0)
+    icon = raw[:first_text].strip()
+    label_and_value = raw[first_text:].rsplit(" ", maxsplit=1)
+    if len(label_and_value) != 2:
+        return escape(raw)
+    label, value = label_and_value
+    suffix = f" {escape(icon)}" if icon else ""
+    return f"{escape(label)}: <b>{escape(value)}</b>{suffix}"
+
+
 def render_equipment_caption(
     loadout: EquipmentLoadout,
 ) -> str:
-    bonuses = loadout.total_bonuses
+    bonuses = [_format_total_bonus(bonus) for bonus in loadout.total_bonuses]
     return "\n".join(
         [
             f"🛡 <b>Экипировка · {loadout.occupied_count}/{len(loadout.slots)}</b>",
-            "<i>Характеристики, заточка и установленные Карты показаны на изображении.</i>",
-            "🃏 В каждую вещь можно вставить одну Карту.",
             "",
-            "<b>Итоговые показатели</b>",
-            "  ·  ".join(bonuses[:5]),
-            "  ·  ".join(bonuses[5:]),
+            "📊 <b>Итоговые бонусы</b>",
+            *bonuses,
             "",
             "<i>Выберите группу снаряжения.</i>",
         ]

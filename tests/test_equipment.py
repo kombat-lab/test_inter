@@ -82,14 +82,24 @@ def test_each_item_has_one_optional_card_slot() -> None:
     assert render_equipment_board(card_loadout) != render_equipment_board(loadout)
 
 
-def test_equipment_main_screen_is_compact() -> None:
+def test_equipment_main_screen_contains_all_total_bonuses() -> None:
     loadout = get_equipment_loadout(1)
     caption = render_equipment_caption(loadout)
     keyboard = equipment_keyboard(loadout)
 
     assert "Экипировка · 12/15" in caption
-    assert "Защита 61" in caption
-    assert "одну Карту" in caption
+    assert "HP: <b>750</b> ❤️" in caption
+    assert "Скорость: <b>+15%</b> 🐾" in caption
+    assert "Бонус HP от экипа: <b>+0</b> ❤️" in caption
+    assert "Бонус скорости от экипа: <b>+15%</b> 🐾" in caption
+    assert "Защита: <b>61</b> 🛡" in caption
+    assert "Маг. защита: <b>58</b> 🪬" in caption
+    assert "Крит: <b>3</b> 💢" in caption
+    assert "Атака: <b>1</b> ⚔️" in caption
+    assert "Маг. атака: <b>67</b> 🔮" in caption
+    assert "Блок: <b>8</b> 🧱" in caption
+    assert "показаны на изображении" not in caption
+    assert "одну Карту" not in caption
     assert len(keyboard.inline_keyboard) == 3
     assert keyboard.inline_keyboard[0][0].text == "🛡 Броня · 8/8"
     assert keyboard.inline_keyboard[0][1].text == "⚔️ Оружие · 2/2"
